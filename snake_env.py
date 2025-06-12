@@ -107,7 +107,7 @@ class SnakeEnv:
             self.spawn_moving_obstacle()
         self.food_pos = self.get_random_food_position()
         self.food_spawn = True
-        self.frame_iteration = 0  # Schutz gegen endloses Umherirren
+        self.frame_iteration = 0
         return self.get_state()
 
     def step(self, action):
@@ -116,7 +116,6 @@ class SnakeEnv:
         """
         self.frame_iteration += 1
 
-        # Update Richtung basierend auf der Aktion (absolute Richtung)
         action_map = {0: "UP", 1: "DOWN", 2: "LEFT", 3: "RIGHT"}
         chosen_direction = action_map.get(action, self.direction)
         # Verhindere Richtungsumkehr
@@ -144,7 +143,7 @@ class SnakeEnv:
         reward = 0
         done = False
 
-        # Überprüfe, ob Food gegessen wurde
+        # Überprüfe food
         if self.snake_pos == self.food_pos:
             self.score += 1
             reward = 10
@@ -156,13 +155,11 @@ class SnakeEnv:
             self.food_pos = self.get_random_food_position()
             self.food_spawn = True
 
-        # Kollisionsprüfung (Wände, Selbstkollision, statische Hindernisse)
         if self.is_collision(self.snake_pos):
             reward = -10
             done = True
             return self.get_state(), reward, done, {}
 
-        # Aktualisiere bewegliche Hindernisse und prüfe Kollision
         self.update_moving_obstacles()
         for mob in self.moving_obstacles:
             for segment in self.snake_body[:4]:
@@ -178,7 +175,6 @@ class SnakeEnv:
             self.FPS = self.base_FPS + self.level - 1
             self.spawn_moving_obstacle()
 
-        # Abbruch, wenn zu viele Schritte vergangen sind
         if self.frame_iteration > 100 * len(self.snake_body):
             reward = -10
             done = True
@@ -205,12 +201,10 @@ class SnakeEnv:
         return False
 
     def get_random_food_position(self):
-        """Ermittelt eine zufällige Position für das Food, welche nicht auf Hindernissen liegt."""
         while True:
             x = random.randrange(0, self.WINDOW_WIDTH, self.CELL_SIZE)
             y = random.randrange(0, self.WINDOW_HEIGHT, self.CELL_SIZE)
             grid_pos = (x // self.CELL_SIZE, y // self.CELL_SIZE)
-            # Prüfe, ob das Feld frei ist (nicht in statischen Hindernissen und nicht in beweglichen)
             if grid_pos not in self.static_obstacles and grid_pos not in [mob['pos'] for mob in self.moving_obstacles]:
                 return [x, y]
 
@@ -233,16 +227,6 @@ class SnakeEnv:
         pygame.display.update()
 
     def get_state(self):
-        """
-        Erweiterter Zustand als Vektor.
-        Bestehend aus:
-          - 3 Gefahrenindikatoren (gerade, rechts, links)
-          - 4 One-Hot-Codierung der aktuellen Richtung (UP, DOWN, LEFT, RIGHT)
-          - 4 Indikatoren, ob das Food relativ zum Kopf links, rechts, oben oder unten liegt
-          - 2 relative Positionen (dx, dy) des nächstgelegenen beweglichen Hindernisses (normalisiert)
-          - 4 One-Hot-Codierung der Bewegungsrichtung des nächstgelegenen Hindernisses (UP, DOWN, LEFT, RIGHT)
-        Insgesamt also 17 Features.
-        """
         head_x, head_y = self.snake_pos
         # Bestehende Features:
         dir_u = self.direction == "UP"
@@ -298,8 +282,6 @@ class SnakeEnv:
             elif (dx, dy) == (1, 0):
                 dir_mob = [0, 0, 0, 1]
         # Falls kein Hindernis existiert, bleiben die neuen Features 0.
-
-        # Füge neue Features zum Zustand hinzu:
         state.extend([nearest_dx, nearest_dy])
         state.extend(dir_mob)
 
