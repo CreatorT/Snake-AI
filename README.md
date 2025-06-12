@@ -89,5 +89,5 @@ TUTORIAL.md   # Tutorial for more information
 
 ## License
 
-This project is provided as-is for educational purposes. Textures originate from open-source or freely available assets.
+MIT – do whatever you like, just keep the notice. 😊
 
