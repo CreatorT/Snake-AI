@@ -1,4 +1,3 @@
-# Standard imports
 import pygame
 import sys
 import random
@@ -8,7 +7,6 @@ import json
 import pygame.gfxdraw
 from collections import deque
 import torch
-# ----------------- Original Game Configuration and Functions ------------------
 
 with open("config.json", "r") as cfg_file:
     cfg = json.load(cfg_file)
